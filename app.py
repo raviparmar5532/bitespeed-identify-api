@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database import Base, engine
-import schemas, services, database, models
+import schemas, services, database
 from APIExceptions import APIException
 from sqlalchemy.orm import Session
 import asyncio
-import threading
+import logging
 from uuid import uuid4 as uuid
 
 # Initialize FastAPI app
@@ -27,65 +27,58 @@ is_worker_running = False
 
 # Worker function for processing the queue
 async def worker():
+    logging.info("Worker Started")
     global is_worker_running
     is_worker_running = True
-    print(f"Looking in the queue : {identify_queue}")
+    
     while True:
         # Wait for a task to appear in the queue
         task_id, task = await identify_queue.get()
 
         if task is None:
-            # End the worker when a 'None' task is received (for graceful shutdown)
+            # End the worker when a 'None' task is received
             break
         
-        # Extract payload and db session from the task
         payload, db = task
+        logging.info(f"Picked {payload}")
 
         try:
-            # Process the task
-            result = await services.identify_service(payload.email, payload.phoneNumber, db)
-
-            # Store the result in task_results
-            task_results[task_id] = result
+            task_results[task_id] = await services.identify_service(payload.email, payload.phoneNumber, db)
         except APIException as e:
-            task_results[task_id] = None
             raise e
-        # Mark the task as done
+        except Exception as e:
+            task_results[task_id] = None
+            logging.error(e)
+            raise HTTPException(500, "Internal Server Error")
         finally:
             identify_queue.task_done()
 
-    print("Queue completed")
+    logging.info("Queue processed")
     is_worker_running = False
 
 # Define the API endpoint for identifying
 @app.post("/identify", response_model=schemas.IdentifyResponse)
 async def identify(payload: schemas.IdentifyRequest, db: Session = Depends(database.get_db)):
-    if not payload.email and not payload.phoneNumber:
-        raise HTTPException(status_code=400, detail="At least email or phoneNumber is required")
 
     # Create a unique task ID
     task_id = str(uuid())  # You can use any method to create a unique task ID
 
     # Immediately enqueue the task with the task_id
-    print(f"Adding in queue : {task_id} {payload}")
+    logging.info(f"Adding in queue : {task_id} {payload}")
     await identify_queue.put((task_id, (payload, db)))
-    print(f"Addded : {identify_queue}")
+    logging.info(f"Addded : {identify_queue}")
 
     global is_worker_running
     if not is_worker_running:
-        print("Starting worker")
+        logging.info("Starting worker")
         asyncio.create_task(worker())
 
     # Wait for the worker to finish processing the task
     while task_id not in task_results:
-        await asyncio.sleep(0.1)  # Check for result every 100ms
+        await asyncio.sleep(0.1)  # Check every 100ms
 
     # Once the task is done, return the result
     result = task_results[task_id]
     if not result:
-        raise HTTPException(status_code=500, detail="Check the logs")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     return result
-
-@app.get("/get")
-def get_db_state(db: Session = Depends(database.get_db)):
-    return list(db.query(models.Contact).all())
