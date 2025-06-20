@@ -23,7 +23,7 @@ def get_response_from_primary_contact(primary_contact : models.Contact, db : Ses
 
 
 
-def identify_service(email:str, phoneNumber:int, db: Session) -> schemas.IdentifyResponse:
+async def identify_service(email:str, phoneNumber:int, db: Session) -> schemas.IdentifyResponse:
 
     st = set(map(lambda contact : contact.linkPrecedence.value , db.query(models.Contact)))
     if st and 'primary' not in st:
