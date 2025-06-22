@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Enum, ForeignKey, func
 from sqlalchemy.dialects.mysql import TIMESTAMP
 from sqlalchemy.orm import validates
 from database import Base
-from APIExceptions import InvalidPhoneNumberException
 import enum
 import datetime
 

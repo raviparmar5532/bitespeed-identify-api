@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database import Base, engine
 import schemas, services, database
-from APIExceptions import APIException
+from exceptions import APIException
 from sqlalchemy.orm import Session
 import asyncio
 import logging
