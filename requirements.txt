@@ -3,4 +3,4 @@ uvicorn
 sqlalchemy
 mysql-connector-python
 python-dotenv
-pydantic>=2
+pydantic==2.11.1
