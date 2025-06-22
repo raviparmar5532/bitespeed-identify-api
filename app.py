@@ -82,3 +82,9 @@ async def identify(payload: schemas.IdentifyRequest, db: Session = Depends(datab
     if not result:
         raise HTTPException(status_code=500, detail="Internal Server Error")
     return result
+
+# Define the API endpoint for identifying
+@app.delete("/reset")
+def identify(db: Session = Depends(database.get_db)):
+    services.truncate_database(db)
+    return "Database Truncated"

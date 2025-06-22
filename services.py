@@ -116,3 +116,10 @@ async def identify_service(email:str, phoneNumber:str, db: Session) -> schemas.I
     change_secondary_contacts_parent_to_primary_contact(primary_contact, primary_contact.id, db)
 
     return get_response_from_primary_contact(primary_contact, db)
+
+
+
+def truncate_database(db: Session):
+    for contact in db.query(models.Contact).all():
+        db.delete(contact)
+    db.commit()
