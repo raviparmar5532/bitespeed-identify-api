@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database import Base, engine
 import schemas, services, database
-from APIExceptions import APIException
+from exceptions import APIException
 from sqlalchemy.orm import Session
 import asyncio
 import logging
@@ -83,7 +83,6 @@ async def identify(payload: schemas.IdentifyRequest, db: Session = Depends(datab
         raise HTTPException(status_code=500, detail="Internal Server Error")
     return result
 
-# Define the API endpoint for identifying
 @app.delete("/reset")
 def identify(db: Session = Depends(database.get_db)):
     services.truncate_database(db)

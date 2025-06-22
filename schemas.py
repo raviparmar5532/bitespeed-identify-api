@@ -1,6 +1,6 @@
 from pydantic import BaseModel, model_validator
 from typing import Optional
-from APIExceptions import InvalidRequest, InvalidPhoneNumberException, InvalidEmailException
+from exceptions import InvalidRequest, InvalidPhoneNumberException, InvalidEmailException
 
 class IdentifyRequest(BaseModel):
     email: Optional[str] = None
