@@ -111,10 +111,6 @@ https://bitespeed-identify-api-9sja.onrender.com
 
 ---
 
-## ✅ License
-
-MIT License (Add your license here if applicable)
-
 ## ✍️ Author
 
 Developed by [Ravi Parmar] — [raviparmar5532@gmail.com]
